@@ -13,6 +13,7 @@ namespace Acrya.Renderer
         public const float zoomSpeed = 1.1f;
         public static float zoomScale = 1f;
         public static float zoomMax = 100;
+        public static float zoomMin = 1;
         public static float zoom = 1;
         // position of the top left of the camera
         public static float x;

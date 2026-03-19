@@ -10,7 +10,7 @@ using static SDL2.SDL;
 
 namespace Acrya.Renderer
 {
-    internal static partial class Renderer
+    public static partial class Renderer
     {
         // <<SDL Pointers>> //
         private static IntPtr SDLRenderer;
@@ -133,7 +133,7 @@ namespace Acrya.Renderer
 
 
 
-            SDL_SetRenderDrawColor(SDLRenderer, 60, 10, 70, 255); // set default colour to purple
+            _ = SDL_SetRenderDrawColor(SDLRenderer, 60, 10, 70, 255); // set default colour to purple
 
 
             screenTexture = SDL_CreateTexture(
@@ -143,7 +143,6 @@ namespace Acrya.Renderer
                 screenWidth,
                 screenHeight);
             textures.Add(screenTexture);
-
 
             setupComplete.Set();
 
@@ -283,7 +282,12 @@ namespace Acrya.Renderer
         {
             // All fonts contained in the \Fonts folder
             string fontsPath = Path.Combine(currentDirectory, $"Fonts");
-            if (Path.Exists(fontsPath) == false) { debugger.AddLog($"Fonts path was not found. Creating..."); Directory.CreateDirectory(fontsPath); return; }
+            if (Path.Exists(fontsPath) == false) 
+            { 
+                debugger.AddLog($"Fonts path was not found. Creating..."); Directory.CreateDirectory(fontsPath);
+                fonts.Add("Aller_Bd", IntPtr.Zero);
+                return; 
+            }
 
             string[] files = Directory.GetFiles(fontsPath, "*.ttf", SearchOption.AllDirectories);
             foreach (string path in files)

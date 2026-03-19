@@ -1,4 +1,5 @@
-﻿using ShortTools.General;
+﻿using ILGPU.Algorithms.RadixSortOperations;
+using ShortTools.General;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -62,13 +63,15 @@ namespace Acrya.Renderer
                         }
                         // Zoom normalisation
                         // Makes the camera zoom based on the middle
-                        Camera.zoom = float.Clamp(Camera.zoom, 1, Camera.zoomMax);
+                        Camera.zoom = float.Clamp(Camera.zoom, Camera.zoomMin, Camera.zoomMax);
                         float mx = Renderer.ScreenWidth * (Camera.zoom - oldZoom) / (Camera.zoom * oldZoom);
                         float my = Renderer.ScreenHeight * (Camera.zoom - oldZoom) / (Camera.zoom * oldZoom);
 
                         _ = SDL_GetMouseState(out int mouseX, out int mouseY);
                         Camera.x += mx * (mouseX / (float)Renderer.ScreenWidth);
                         Camera.y += my * (mouseY / (float)Renderer.ScreenHeight);
+
+                        Renderer.debugger.AddLog($"Camera zoom is {Camera.zoom}");
                         break;
 
                     case SDL_EventType.SDL_MOUSEMOTION:
@@ -111,8 +114,8 @@ namespace Acrya.Renderer
                 int width = (int)(Renderer.ScreenWidth / (Camera.zoom * Renderer.pixelsPerTile));
                 int height = (int)(Renderer.ScreenHeight / (Camera.zoom * Renderer.pixelsPerTile));
 
-                //Camera.x = float.Clamp(Camera.x, 0, AcryaEngine.map!.Width - width);
-                //Camera.y = float.Clamp(Camera.y, 0, AcryaEngine.map!.Height - height);
+                Camera.x = float.Clamp(Camera.x, 0, Math.Max(AcryaEngine.map!.Width - width, 0));
+                Camera.y = float.Clamp(Camera.y, 0, Math.Max(AcryaEngine.map!.Height - height, 0));
 
                 Renderer.Refresh();
             }

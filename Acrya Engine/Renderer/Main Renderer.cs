@@ -11,7 +11,7 @@ using System.Globalization;
 namespace Acrya.Renderer
 {
     // Game specific functions.
-    internal static partial class Renderer
+    public static partial class Renderer
     {
         private static IntPtr mapTexture;
         public const int drawGridTileSize = 16;
@@ -40,8 +40,8 @@ namespace Acrya.Renderer
             // <<Full Map Render>> //
             Refresh();
 
-
-            Camera.zoom = (float)(AcryaEngine.map.Width * pixelsPerTile) / (float)screenWidth;
+            Camera.zoomMin = screenWidth / (float)(AcryaEngine.map.Width * pixelsPerTile);
+            Camera.zoom = Camera.zoomMin;
             debugger.AddLog($"Initiating with a zoom of {Camera.zoom}");
         }
 

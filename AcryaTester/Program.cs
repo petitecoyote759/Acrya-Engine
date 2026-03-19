@@ -1,7 +1,8 @@
 ﻿using Acrya;
 using SDL2;
-using static SDL2.SDL;
 using ShortTools.PlanetaryForge;
+using System.Runtime.InteropServices;
+using static SDL2.SDL;
 
 
 
@@ -10,11 +11,15 @@ namespace Tester
 {
     internal static class General
     {
+        const int mapSize = 1000;
         public static void Main()
         {
+            Thread.CurrentThread.Name = "Main Thread";
+
             Map map = new Map();
-            (TileID[][], float[][]) mapPair = MapGenerator.CreateMap(100, 100);
+            (TileID[][], float[][]) mapPair = MapGenerator.CreateMap(mapSize, mapSize);
             map.map = mapPair.Item1;
+            map.altitudes = mapPair.Item2;
 
             AcryaEngine.Init(map);
         }
@@ -25,6 +30,7 @@ namespace Tester
     internal class Map : IMap
     {
         public TileID[][] map;
+        public float[][] altitudes;
 
         public int Width => map.Length;
         public int Height => map[0].Length;
@@ -33,45 +39,67 @@ namespace Tester
 
         private static readonly (byte, byte, byte) Black = (255, 0, 0);
         private static readonly (byte, byte, byte) White = (0, 255, 0);
-        private static readonly Dictionary<TileID, (byte, byte, byte)> TileColours = new Dictionary<TileID, (byte, byte, byte)>()
+        private static readonly Dictionary<TileID, uint> TileColours = new Dictionary<TileID, uint>()
         {
-            { TileID.Cliff, (0x4B, 0x4B, 0x4B) },
-            { TileID.Water, (0x14, 0xA0, 0xC8) },
-            { TileID.Sand, (0xC8, 0xC8, 0x14) },
-            { TileID.Grass, (0x0A, 0x82, 0x0A) },
-            { TileID.Forest, (0x0F, 0x73, 0x14) }
+            { TileID.Cliff, 0x4B4B4BFF },
+            { TileID.Water, 0x14A0C8FF },
+            { TileID.Sand, 0xC8C814FF },
+            { TileID.Grass, 0x0A820AFF },
+            { TileID.Forest, 0x0F7314FF }
         };
         public IntPtr GenerateMapImage(IntPtr SDLRenderer, out int pixelsPerTile)
         {
             pixelsPerTile = 1;
 
-            IntPtr texture = SDL_CreateTexture(SDLRenderer, SDL_PIXELFORMAT_RGBA8888, (int)SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, Width * pixelsPerTile, Height * pixelsPerTile);
-
             IntPtr previousTarget = SDL_GetRenderTarget(SDLRenderer);
-            SDL_SetRenderTarget(SDLRenderer, texture);
 
+            SDL_Rect targetRect = new SDL_Rect();
 
-            SDL_Rect destRect = new SDL_Rect();
-            destRect.w = pixelsPerTile;
-            destRect.h = pixelsPerTile;
+            targetRect.w = 1;
+            targetRect.h = 1;
 
+            // <<Main Image Creation>> //
+            IntPtr surface = SDL_CreateRGBSurfaceWithFormat(0, Width * pixelsPerTile, Width * pixelsPerTile, 32, SDL_PIXELFORMAT_RGBA8888);
+            SDL_SetSurfaceBlendMode(surface, SDL_BlendMode.SDL_BLENDMODE_NONE);
+            SDL_LockSurface(surface);
             for (int x = 0; x < Width; x++)
             {
-                destRect.x = x * pixelsPerTile;
+                targetRect.x = x;
                 for (int y = 0; y < Height; y++)
                 {
-                    destRect.y = y * pixelsPerTile;
+                    targetRect.y = y;
 
-                    (byte, byte, byte) colour = TileColours[map[x][y]];
-                    SDL_SetRenderDrawColor(SDLRenderer, colour.Item1, colour.Item2, colour.Item3, 255);
-                    SDL_RenderFillRect(SDLRenderer, ref destRect);
+                    RGBA8888Colour colour = new RGBA8888Colour() { data = TileColours[map[x][y]] };
+
+                    colour.r = (byte)(colour.r * ((5 + altitudes[x][y]) / 6f));
+                    colour.g = (byte)(colour.g * ((5 + altitudes[x][y]) / 6f));
+                    colour.b = (byte)(colour.b * ((5 + altitudes[x][y]) / 6f));
+
+                    SDL_FillRect(surface, ref targetRect, colour.data);
                 }
             }
+            SDL_UnlockSurface(surface);
+
+            IntPtr texture = SDL_CreateTextureFromSurface(SDLRenderer, surface);
+            SDL_FreeSurface(surface);
 
             SDL_SetRenderTarget(SDLRenderer, previousTarget);
             Console.WriteLine($"Created : {SDL_GetError()}");
             return texture;
         }
 
+    }
+
+
+
+
+    [StructLayout(LayoutKind.Explicit)]
+    internal struct RGBA8888Colour
+    {
+        [FieldOffset(0)] public uint data;
+        [FieldOffset(0)] public byte r;
+        [FieldOffset(1)] public byte g;
+        [FieldOffset(2)] public byte b;
+        [FieldOffset(3)] public byte a;
     }
 }
