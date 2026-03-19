@@ -1,0 +1,1 @@
+Use ECSHandler.LFT to get current time in ms
