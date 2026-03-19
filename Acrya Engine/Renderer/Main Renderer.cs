@@ -11,13 +11,16 @@ using System.Globalization;
 namespace Acrya.Renderer
 {
     // Game specific functions.
-    internal static partial class RendererTools
+    internal static partial class Renderer
     {
         private static IntPtr mapTexture;
         public const int drawGridTileSize = 16;
 
         public static int drawGridWidth = -1;
         public static int drawGridHeight = -1;
+
+        public static int PixelsPerTile => pixelsPerTile;
+        internal static int pixelsPerTile = -1;
 
         public static void Setup()
         {
@@ -29,13 +32,17 @@ namespace Acrya.Renderer
             
 
             // <<Main Image Creation>> //
-            mapTexture = AcryaEngine.map.GenerateMapImage(screenWidth, screenHeight, SDLRenderer);
+            mapTexture = AcryaEngine.map.GenerateMapImage(SDLRenderer, out pixelsPerTile);
 
             textures.Add(mapTexture);
 
 
             // <<Full Map Render>> //
             Refresh();
+
+
+            Camera.zoom = (float)(AcryaEngine.map.Width * pixelsPerTile) / (float)screenWidth;
+            debugger.AddLog($"Initiating with a zoom of {Camera.zoom}");
         }
 
 

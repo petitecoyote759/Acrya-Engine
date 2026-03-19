@@ -10,7 +10,7 @@ using static SDL2.SDL;
 
 namespace Acrya.Renderer
 {
-    internal static partial class RendererTools
+    internal static partial class Renderer
     {
         // <<SDL Pointers>> //
         private static IntPtr SDLRenderer;
@@ -75,7 +75,7 @@ namespace Acrya.Renderer
 
 
 
-        static RendererTools()
+        static Renderer()
         {
             // <<Misc Variables Setup>> //
             controllerThread.Name = "Naturio Renderer Thread";
@@ -189,11 +189,11 @@ namespace Acrya.Renderer
                 if (dtMs < minMsPerFrame) { Thread.Sleep((int)(minMsPerFrame - dtMs)); } // caps the fps to a reasonable amount.
 
                 // <<Main Drawing Code>> //
-
+                _ = SDL_SetRenderDrawColor(SDLRenderer, 20, 0, 50, 255);
                 _ = SDL_RenderClear(SDLRenderer);
 
                 _ = SDL_SetRenderTarget(SDLRenderer, screenTexture);
-                Render(dt);
+				Render(dt);
                 _ = SDL_SetRenderTarget(SDLRenderer, IntPtr.Zero); // reset to screen
 
                 _ = SDL_RenderCopy(SDLRenderer, screenTexture, IntPtr.Zero, IntPtr.Zero);
@@ -245,6 +245,10 @@ namespace Acrya.Renderer
             // All images should be contained within the \Images folder
             string imagePath = Path.Combine(currentDirectory, $"Images");
             debugger.AddLog($"Searching {imagePath} for images...", WarningLevel.Info);
+
+            if (Path.Exists(imagePath) == false) { debugger.AddLog($"Image path was not found. Creating..."); Directory.CreateDirectory(imagePath); return; }
+
+
             string[] pngFiles = Directory.GetFiles(imagePath, "*.png", SearchOption.AllDirectories);
             string[] bmpFiles = Directory.GetFiles(imagePath, "*.bmp", SearchOption.AllDirectories);
             int directoriesToImages = currentDirectory.Split(Path.DirectorySeparatorChar).Length;
@@ -278,7 +282,10 @@ namespace Acrya.Renderer
         private static void LoadFonts()
         {
             // All fonts contained in the \Fonts folder
-            string[] files = Directory.GetFiles(Path.Combine(currentDirectory, $"Fonts"), "*.ttf", SearchOption.AllDirectories);
+            string fontsPath = Path.Combine(currentDirectory, $"Fonts");
+            if (Path.Exists(fontsPath) == false) { debugger.AddLog($"Fonts path was not found. Creating..."); Directory.CreateDirectory(fontsPath); return; }
+
+            string[] files = Directory.GetFiles(fontsPath, "*.ttf", SearchOption.AllDirectories);
             foreach (string path in files)
             {
                 string fileName = Path.GetFileName(path);
@@ -291,6 +298,8 @@ namespace Acrya.Renderer
                 // Success
                 else { fonts.Add(fontName, fontPointer); }
             }
+
+            if (fonts.ContainsKey("Aller_Bd") == false) { fonts.Add("Aller_Bd", IntPtr.Zero); }
         }
 
 

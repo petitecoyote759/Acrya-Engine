@@ -31,7 +31,7 @@ namespace Acrya.Renderer
                 switch (e.type)
                 {
                     case SDL_EventType.SDL_QUIT: // ensures that quitting works and runs cleanup code
-                        RendererTools.Stop();
+                        Renderer.Stop();
                         break;
 
                     case SDL_EventType.SDL_KEYDOWN:
@@ -63,15 +63,19 @@ namespace Acrya.Renderer
                         // Zoom normalisation
                         // Makes the camera zoom based on the middle
                         Camera.zoom = float.Clamp(Camera.zoom, 1, Camera.zoomMax);
-                        float dx = RendererTools.ScreenWidth * (Camera.zoom - oldZoom) / (2 * Camera.zoom * oldZoom);
-                        float dy = RendererTools.ScreenHeight * (Camera.zoom - oldZoom) / (2 * Camera.zoom * oldZoom);
+                        float dx = Renderer.ScreenWidth * (Camera.zoom - oldZoom) / (2 * Camera.zoom * oldZoom);
+                        float dy = Renderer.ScreenHeight * (Camera.zoom - oldZoom) / (2 * Camera.zoom * oldZoom);
                         Camera.x += dx;
                         Camera.y += dy;
                         break;
 
+                    case SDL_EventType.SDL_MOUSEMOTION:
+
+                        break;
+
                     default:
 
-                        RendererTools.debugger.AddLog($"{e.type}", WarningLevel.Debug);
+                        Renderer.debugger.AddLog($"{e.type}", WarningLevel.Debug);
                         break;
                 }
             }
@@ -102,12 +106,13 @@ namespace Acrya.Renderer
 
             if (oldX != Camera.x || oldY != Camera.y || oldZoom != Camera.zoom)
             {
-                int width = (int)(RendererTools.ScreenWidth / Camera.zoom);
-                int height = (int)(RendererTools.ScreenHeight / Camera.zoom);
-                Camera.x = float.Clamp(Camera.x, 0, AcryaEngine.map!.Width- width);
-                Camera.y = float.Clamp(Camera.y, 0, AcryaEngine.map!.Height - height);
+                int width = (int)(Renderer.ScreenWidth / (Camera.zoom * Renderer.pixelsPerTile));
+                int height = (int)(Renderer.ScreenHeight / (Camera.zoom * Renderer.pixelsPerTile));
 
-                RendererTools.Refresh();
+                //Camera.x = float.Clamp(Camera.x, 0, AcryaEngine.map!.Width - width);
+                //Camera.y = float.Clamp(Camera.y, 0, AcryaEngine.map!.Height - height);
+
+                Renderer.Refresh();
             }
         }
     }

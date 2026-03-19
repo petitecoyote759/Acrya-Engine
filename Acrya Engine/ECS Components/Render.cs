@@ -18,7 +18,7 @@ namespace Acrya.ECSComponents
 
         // <<Public Variables> //
         public double angle;
-        public readonly IntPtr Image => imageName.Length == 0 ? IntPtr.Zero : RendererTools.images[imageName];
+        public readonly IntPtr Image => imageName.Length == 0 ? nint.Zero : Renderer.Renderer.images[imageName];
         public string ImageName { readonly get => imageName; set => imageName = value; }
         private string imageName = "";
         public float width;
@@ -45,31 +45,31 @@ namespace Acrya.ECSComponents
         {
             ECSHandler.GetEntityComponent(uid, out EC_Entity Me);
 
-            int gridX = Me.intX / RendererTools.drawGridTileSize;
-            int gridY = Me.intY / RendererTools.drawGridTileSize;
+            int gridX = Me.intX / Renderer.Renderer.drawGridTileSize;
+            int gridY = Me.intY / Renderer.Renderer.drawGridTileSize;
 
-            int gridImageSize = (int)MathF.Ceiling((width + 1) / (float)(2 * RendererTools.drawGridTileSize));
+            int gridImageSize = (int)MathF.Ceiling((width + 1) / (float)(2 * Renderer.Renderer.drawGridTileSize));
             for (int x = gridX - gridImageSize; x <= gridX + gridImageSize; x++)
             {
                 for (int y = gridY - gridImageSize; y <= gridY + gridImageSize; y++)
                 {
-                    RendererTools.RequestDrawGrid(x, y);
+                    Renderer.Renderer.RequestDrawGrid(x, y);
                 }
             }
 
-            RendererTools.RequestEntityDraw(gridX, gridY, uid);
+            Renderer.Renderer.RequestEntityDraw(gridX, gridY, uid);
         }
 
         public readonly void Cleanup(int uid)
         {
             ECSHandler.GetEntityComponent(uid, out EC_Entity Me);
 
-            int gridX = Me.intX / RendererTools.drawGridTileSize;
-            int gridY = Me.intY / RendererTools.drawGridTileSize;
+            int gridX = Me.intX / Renderer.Renderer.drawGridTileSize;
+            int gridY = Me.intY / Renderer.Renderer.drawGridTileSize;
 
             lock (ECSHandler.updatedGrids)
             {
-                RendererTools.RequestDrawGrid(gridX, gridY);
+                Renderer.Renderer.RequestDrawGrid(gridX, gridY);
             }
         }
     }

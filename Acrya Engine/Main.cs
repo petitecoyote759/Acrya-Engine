@@ -1,5 +1,5 @@
-﻿
-
+﻿using Acrya.Renderer;
+using Acrya.ECSHandlers;
 
 
 
@@ -55,6 +55,9 @@ internal static class Walker
 
 Setup via
 
+AcryaEngine.Init(map) ->
+
+
 Renderer.Setup();
 Renderer.Start();
 
@@ -69,6 +72,8 @@ and then functionality for .Stop, .Pause, and .Resume
 
 */
 
+using System.Runtime.CompilerServices;
+
 namespace Acrya
 {
     public static class AcryaEngine
@@ -81,6 +86,19 @@ namespace Acrya
         {
 
         }
+
+
+
+
+        public static void Init(IMap inMap)
+        { 
+            map = inMap;
+
+            Renderer.Renderer.RequestSetupRenderer();
+            ECSHandler.Setup();
+
+            Renderer.Renderer.Start();
+        }
     }
 
 
@@ -90,6 +108,6 @@ namespace Acrya
         public int Width { get; }
         public int Height { get; }
 
-        public IntPtr GenerateMapImage(int screenWidth, int screenHeight, IntPtr SDLRenderer);
+        public IntPtr GenerateMapImage(IntPtr SDLRenderer, out int pixelsPerTile);
     }
 }

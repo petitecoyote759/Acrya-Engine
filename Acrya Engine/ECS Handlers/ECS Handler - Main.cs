@@ -188,7 +188,7 @@ namespace Acrya.ECSHandlers
             {
                 foreach ((int, int) coordinate in updatedGrids)
                 {
-                    RendererTools.RequestDrawGrid(coordinate.Item1, coordinate.Item2);
+                    Renderer.Renderer.RequestDrawGrid(coordinate.Item1, coordinate.Item2);
                 }
                 updatedGrids.Clear();
             }
