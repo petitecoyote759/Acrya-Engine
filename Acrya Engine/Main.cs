@@ -73,7 +73,14 @@ namespace Acrya
 {
     public static class AcryaEngine
     {
-        public static IMap? map = null;
+        public static IMap? Map => map;
+        internal static IMap? map = null;
+
+
+        public static void Main()
+        {
+
+        }
     }
 
 

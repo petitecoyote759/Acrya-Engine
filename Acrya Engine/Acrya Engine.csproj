@@ -21,16 +21,18 @@
     <IncludeSymbols>False</IncludeSymbols>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
     <AnalysisLevel>6.0-all</AnalysisLevel>
+    <StartupObject>Acrya.AcryaEngine</StartupObject>
+    <PackageId>AcryaEngine</PackageId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <WarningLevel>9999</WarningLevel>
-    <NoWarn>1701;1702;CS1591;CA1805;IDE0090;IDE0301;IDE0290;IDE0028;CA1051;CA1707;IDE0017</NoWarn>
+    <NoWarn>1701;1702;CS1591;CA1805;IDE0090;IDE0301;IDE0290;IDE0028;CA1051;CA1707;CA1708;IDE0017;MSB3270</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <WarningLevel>9999</WarningLevel>
-    <NoWarn>1701;1702;CS1591;CA1805;IDE0090;IDE0301;IDE0290;IDE0028;CA1051;CA1707;IDE0017</NoWarn>
+    <NoWarn>1701;1702;CS1591;CA1805;IDE0090;IDE0301;IDE0290;IDE0028;CA1051;CA1707;CA1708;IDE0017;MSB3270</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

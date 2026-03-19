@@ -6,6 +6,8 @@ using SDL2;
 using ShortTools.General;
 using static SDL2.SDL;
 
+
+
 namespace Acrya.Renderer
 {
     internal static partial class RendererTools
@@ -42,8 +44,14 @@ namespace Acrya.Renderer
         private static long LFT = DateTimeOffset.Now.ToUnixTimeMilliseconds(); // last frame time
         public static bool Running = true;
         private static readonly Thread controllerThread = new Thread(new ThreadStart(SetupRenderer));
-        private static string currentDirectory;
-        public static readonly Debugger debugger;
+        private static readonly string currentDirectory = Directory.GetCurrentDirectory();
+        public static readonly Debugger debugger = new Debugger("Naturio Renderer",
+#if DEBUG
+                WarningLevel.Debug,
+#else //      Compiles with debug output if in debug mode, or info output if in release mode.
+                WarningLevel.Info,
+#endif
+                DebuggerFlag.PrintLogs, DebuggerFlag.WriteLogsToFile, DebuggerFlag.DisplayThread);
 
         // <<Synchronisation>> //
         // ConcurrentQueue is completely thread safe, so no locks are needed.
@@ -70,18 +78,7 @@ namespace Acrya.Renderer
         static RendererTools()
         {
             // <<Misc Variables Setup>> //
-            currentDirectory = Directory.GetCurrentDirectory();
-
-            debugger = new Debugger("Naturio Renderer",
-#if DEBUG
-                WarningLevel.Debug,
-#else //      Compiles with debug output if in debug mode, or info output if in release mode.
-                WarningLevel.Info,
-#endif
-                DebuggerFlag.PrintLogs, DebuggerFlag.WriteLogsToFile, DebuggerFlag.DisplayThread);
-
             controllerThread.Name = "Naturio Renderer Thread";
-
         }
         static ManualResetEvent setupComplete = new ManualResetEvent(false);
         public static void RequestSetupRenderer()
@@ -95,7 +92,12 @@ namespace Acrya.Renderer
             // <<SDL Setup>> //
             debugger.AddLog($"Initialising SDL", WarningLevel.Info);
             // Initialised general SDL.
-            SDL_Init(SDL_INIT_EVERYTHING | SDL_INIT_SENSOR);
+            int resultCode = SDL_Init(SDL_INIT_EVERYTHING | SDL_INIT_SENSOR);
+            if (resultCode != 0)
+            {
+                debugger.AddLog($"SDL failed to initialise! Error : {GetSDLError()}", WarningLevel.CriticalError);
+                
+            }
             // png handling setup.
             SDL_image.IMG_Init(SDL_image.IMG_InitFlags.IMG_INIT_PNG);
 
@@ -351,4 +353,13 @@ namespace Acrya.Renderer
         }
     }
 
+
+
+
+
+
+    public class SDLLoadingException : Exception
+    {
+        public SDLLoadingException(string message) : base(message) { }
+    }
 }
