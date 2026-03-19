@@ -13,9 +13,16 @@ namespace Acrya.Renderer.UI
         internal IntPtr image = IntPtr.Zero;
         public bool showing = true;
 
-        public UIItem()
+        protected UIItem()
         {
             Renderer.UIItems.Add(this);
         }
+    }
+
+
+
+    public class GeneraticUIItem : UIItem
+    {
+
     }
 }

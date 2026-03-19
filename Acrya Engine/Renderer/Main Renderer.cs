@@ -48,7 +48,7 @@ namespace Acrya.Renderer
             Camera.zoom = Camera.zoomMin;
             debugger.AddLog($"Initiating with a zoom of {Camera.zoom}");
 
-            rendererFPSField = new TextField(0, 0, 20, 30, "", (255, 255, 255, 40));
+            rendererFPSField = new TextField(0, 0, 20, 30, "");
         }
 
 
