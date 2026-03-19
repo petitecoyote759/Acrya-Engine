@@ -63,10 +63,12 @@ namespace Acrya.Renderer
                         // Zoom normalisation
                         // Makes the camera zoom based on the middle
                         Camera.zoom = float.Clamp(Camera.zoom, 1, Camera.zoomMax);
-                        float dx = Renderer.ScreenWidth * (Camera.zoom - oldZoom) / (2 * Camera.zoom * oldZoom);
-                        float dy = Renderer.ScreenHeight * (Camera.zoom - oldZoom) / (2 * Camera.zoom * oldZoom);
-                        Camera.x += dx;
-                        Camera.y += dy;
+                        float mx = Renderer.ScreenWidth * (Camera.zoom - oldZoom) / (Camera.zoom * oldZoom);
+                        float my = Renderer.ScreenHeight * (Camera.zoom - oldZoom) / (Camera.zoom * oldZoom);
+
+                        _ = SDL_GetMouseState(out int mouseX, out int mouseY);
+                        Camera.x += mx * (mouseX / (float)Renderer.ScreenWidth);
+                        Camera.y += my * (mouseY / (float)Renderer.ScreenHeight);
                         break;
 
                     case SDL_EventType.SDL_MOUSEMOTION:
