@@ -1,3 +1,20 @@
+# Acrya
+
+# Description
+
+This is a project ive decided to make to help my with my own projects, as I do not like unity and I find it clunky to use. This is designed to be a lightweight 
+engine for top down 2d tile based games at the moment, very limited but it can be useful.
+
+
+
+
+# How it works
+
+The main part of a game engine is its ECS (Entity Component System), which handles the entities and makes it easier to make entities and more modular.
+
+
+
+
 Use ECSHandler.LFT to get current time in ms
 
 
