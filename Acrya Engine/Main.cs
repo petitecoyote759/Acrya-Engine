@@ -82,5 +82,7 @@ namespace Acrya
     {
         public int Width { get; }
         public int Height { get; }
+
+        public IntPtr GenerateMapImage(int screenWidth, int screenHeight, IntPtr SDLRenderer);
     }
 }

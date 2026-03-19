@@ -91,6 +91,7 @@ namespace Acrya.Renderer
         }
         private static void SetupRenderer()
         { 
+            // TODO: fix the error checking here...
             // <<SDL Setup>> //
             debugger.AddLog($"Initialising SDL", WarningLevel.Info);
             // Initialised general SDL.
@@ -187,31 +188,13 @@ namespace Acrya.Renderer
 
                 // <<Main Drawing Code>> //
 
-                SDL_RenderClear(SDLRenderer);
+                _ = SDL_RenderClear(SDLRenderer);
 
-                SDL_SetRenderTarget(SDLRenderer, screenTexture);
+                _ = SDL_SetRenderTarget(SDLRenderer, screenTexture);
                 Render(dt);
-                SDL_SetRenderTarget(SDLRenderer, IntPtr.Zero); // reset to screen
+                _ = SDL_SetRenderTarget(SDLRenderer, IntPtr.Zero); // reset to screen
 
-                SDL_RenderCopy(SDLRenderer, screenTexture, IntPtr.Zero, IntPtr.Zero);
-
-                // <<Grid Render>> //
-                if (General.renderLines)
-                {
-                    SDL_SetRenderDrawColor(SDLRenderer, 0, 0, 0, 255);
-                    int width = (int)MathF.Ceiling(screenWidth / (float)drawGridTileSize);
-                    int height = (int)MathF.Ceiling(screenHeight / (float)drawGridTileSize);
-                    for (int x = 0; x < width; x++)
-                    {
-                        SDL_RenderDrawLine(SDLRenderer, x * drawGridTileSize, 0, x * drawGridTileSize, screenHeight);
-                    }
-                    for (int y = 0; y < height; y++)
-                    {
-                        SDL_RenderDrawLine(SDLRenderer, 0, y * drawGridTileSize, screenWidth, y * drawGridTileSize);
-                    }
-                    SDL_SetRenderDrawColor(SDLRenderer, 60, 10, 70, 255);
-                }
-
+                _ = SDL_RenderCopy(SDLRenderer, screenTexture, IntPtr.Zero, IntPtr.Zero);
 
 
 

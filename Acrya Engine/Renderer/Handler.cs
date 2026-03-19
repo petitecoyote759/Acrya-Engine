@@ -104,10 +104,10 @@ namespace Acrya.Renderer
             {
                 int width = (int)(RendererTools.ScreenWidth / Camera.zoom);
                 int height = (int)(RendererTools.ScreenHeight / Camera.zoom);
-                Camera.x = float.Clamp(Camera.x, 0, Map.tileMap.Length - width);
-                Camera.y = float.Clamp(Camera.y, 0, Map.tileMap[0].Length - height);
+                Camera.x = float.Clamp(Camera.x, 0, AcryaEngine.map!.Width- width);
+                Camera.y = float.Clamp(Camera.y, 0, AcryaEngine.map!.Height - height);
 
-                General.refresh = true;
+                RendererTools.Refresh();
             }
         }
     }

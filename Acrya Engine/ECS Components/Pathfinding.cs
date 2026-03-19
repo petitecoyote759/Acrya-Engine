@@ -53,7 +53,7 @@ namespace Acrya.ECSComponents
         /// </summary>
         internal static CacheCell[][] cachedPaths = Array.Empty<CacheCell[]>();
 
-        private readonly Func<int, int, bool> Walkable;
+        public readonly Func<int, int, bool> Walkable;
         private readonly int patherID = -1;
 
         // <<Constants>> //

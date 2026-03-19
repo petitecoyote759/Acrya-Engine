@@ -1,5 +1,5 @@
 ﻿using Acrya.ECSComponents;
-using BOIDSimulator.Renderer;
+using Acrya.Renderer;
 using ShortTools.General;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
@@ -43,7 +43,7 @@ namespace Acrya.ECSHandlers
         public static long CurrentTime => LFT;
         private static long LFT = DateTimeOffset.Now.ToUnixTimeMilliseconds();// last frame time
         private const int MaxFPS = 60;
-        private static int currentFPS = 0;
+        internal static int currentFPS = 0;
         private const long MaxMsPerFrame = 1000 / MaxFPS;
         private const int secondsPerFPSUpdate = 2;
         private const long ticksPerFPSUpdate = secondsPerFPSUpdate * 1000;
