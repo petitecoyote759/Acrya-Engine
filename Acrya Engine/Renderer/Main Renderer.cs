@@ -5,6 +5,8 @@ using static SDL2.SDL;
 using Acrya.ECSHandlers;
 using Acrya.ECSComponents;
 using System.Globalization;
+using System.Collections.Concurrent;
+using Acrya.Renderer.UI;
 
 
 
@@ -21,6 +23,8 @@ namespace Acrya.Renderer
 
         public static int PixelsPerTile => pixelsPerTile;
         internal static int pixelsPerTile = -1;
+
+        private static TextField rendererFPSField;
 
         public static void Setup()
         {
@@ -43,6 +47,8 @@ namespace Acrya.Renderer
             Camera.zoomMin = screenWidth / (float)(AcryaEngine.map.Width * pixelsPerTile);
             Camera.zoom = Camera.zoomMin;
             debugger.AddLog($"Initiating with a zoom of {Camera.zoom}");
+
+            rendererFPSField = new TextField(0, 0, 20, 30, "", (255, 255, 255, 40));
         }
 
 
@@ -132,7 +138,9 @@ namespace Acrya.Renderer
 
 
             // <<FPS Drawing>> //
-            Write(0, 0, 20, 30, currentFPS.ToString(CultureInfo.CurrentCulture));
+            string fpsString = currentFPS.ToString(CultureInfo.CurrentCulture);
+            if (rendererFPSField.Text != fpsString) { rendererFPSField.Text = fpsString; }
+
             Write(0, 40, 20, 30, ECSHandler.currentFPS.ToString(CultureInfo.CurrentCulture));
             int topLeftX = (int)(Camera.x / drawGridTileSize);
             int topLeftY = (int)(Camera.y / drawGridTileSize);
@@ -149,32 +157,80 @@ namespace Acrya.Renderer
         private const int textCacheLength = 100;
         private static void Write(int posX, int posY, int widthPerChar, int height, string text, string font = "Aller_Bd")
         {
-            IntPtr textImage;
-            if (textCache.ContainsKey(text))
-            {
-                textImage = textCache[text];
-            }
-            else
-            {
-                IntPtr surface = SDL_ttf.TTF_RenderText_Solid(fonts[font], text, Black);
-                textImage = SDL_CreateTextureFromSurface(SDLRenderer, surface);
-                SDL_FreeSurface(surface);
-                textCache.Add(text, textImage);
-                textures.Add(textImage);
-                textCacheQueue.Enqueue(text);
-
-                if (textCacheQueue.Count > textCacheLength)
-                {
-                    string textToRemove = textCacheQueue.Dequeue();
-                    SDL_DestroyTexture(textCache[textToRemove]);
-                    textCache.Remove(textToRemove);
-                }
-            }
+            IntPtr textImage = GetTextImage(text, font, false);
+            
 
             targetRect.x = posX; targetRect.y = posY;
             targetRect.w = widthPerChar * text.Length; targetRect.h = height;
             _ = SDL_RenderCopy(SDLRenderer, textImage, IntPtr.Zero, ref targetRect);
         }
+
+
+
+
+
+
+        /// <summary>
+        /// Creates an image for the text and automatically adds it to the queue to be deleted once there is too much, will not be deleted if preserve is true.
+        /// </summary>
+        /// <param name="text">The text of the image</param>
+        /// <param name="font">Font type - name of the file path from Fonts. Defaults to 'Aller_Bd'.</param>
+        /// <param name="preserve">Keeps the image alive even if there are too many text images. Means that it will be disposed on engine shutdown. Be careful...</param>
+        /// <returns>Pointer to the texture created.</returns>
+        public static IntPtr GetTextImage(string text, string font = "Aller_Bd", bool preserve = false)
+        {
+            if (textCache.ContainsKey(text))
+            {
+                return textCache[text];
+            }
+            else
+            {
+                return GenerateTextImage(text, font);
+            }
+        }
+        
+        private static IntPtr GenerateTextImage(string text, string font = "Aller_Bd", bool preserve = false)
+        {
+            IntPtr surface = SDL_ttf.TTF_RenderText_Solid(fonts[font], text, Black);
+            IntPtr textImage = SDL_CreateTextureFromSurface(SDLRenderer, surface);
+            SDL_FreeSurface(surface);
+            textCache.Add(text, textImage);
+            textures.Add(textImage);
+            if (preserve == false)
+            {
+                textCacheQueue.Enqueue(text);
+            }
+
+            if (textCacheQueue.Count > textCacheLength)
+            {
+                string textToRemove = textCacheQueue.Dequeue();
+                textures.Remove(textCache[textToRemove]);
+                SDL_DestroyTexture(textCache[textToRemove]);
+                textCache.Remove(textToRemove);
+            }
+
+            return textImage;
+        }
+
+
+
+
+
+
+        /// <summary>
+        /// Makes a request for the render thread to run the given function (mainly used for SDL as it is violently not thread safe)
+        /// </summary>
+        public static void RequestFunctionRun(Action action)
+        {
+            using ManualResetEvent functionComplete = new ManualResetEvent(false);
+            functionRequests.Enqueue((action, functionComplete));
+            functionComplete.WaitOne();
+        }
+        private static readonly Queue<(Action, ManualResetEvent)> functionRequests = new Queue<(Action, ManualResetEvent)>();
+
+
+
+
 
 
 

@@ -2,6 +2,8 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Acrya.Renderer.UI;
+using ILGPU.Util;
 using SDL2;
 using ShortTools.General;
 using static SDL2.SDL;
@@ -34,11 +36,12 @@ namespace Acrya.Renderer
         // <<Drawing Variables>> //
         private static SDL_Rect targetRect = new SDL_Rect();
         private static SDL_Rect srcRect = new SDL_Rect();
-        public static readonly Dictionary<string, IntPtr> images = new Dictionary<string, nint>();
+        public static readonly Dictionary<string, IntPtr> images = new Dictionary<string, IntPtr>();
+        public static readonly HashSet<UIItem> UIItems = new HashSet<UIItem>();
         /// <summary>
         /// Other unmanaged textures apart from the images to be cleaned up when renderer is disposed.
         /// </summary>
-        public static readonly List<IntPtr> textures = new List<IntPtr>();
+        public static readonly HashSet<IntPtr> textures = new HashSet<IntPtr>();
 
         // <<Runtime Variables>> //
         private static long LFT = DateTimeOffset.Now.ToUnixTimeMilliseconds(); // last frame time
@@ -70,6 +73,9 @@ namespace Acrya.Renderer
             imageDeleteRequests.Enqueue(name);
         }
         private static ConcurrentQueue<string> imageDeleteRequests = new ConcurrentQueue<string>();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void RequestTextureDeletion(IntPtr texture) { textureDeleteRequests.Enqueue(texture); }
+        private static ConcurrentQueue<IntPtr> textureDeleteRequests = new ConcurrentQueue<IntPtr>();
 
 
 
@@ -93,15 +99,28 @@ namespace Acrya.Renderer
             debugger.AddLog($"Initialising SDL", WarningLevel.Info);
             // Initialised general SDL.
             int resultCode = SDL_Init(SDL_INIT_EVERYTHING | SDL_INIT_SENSOR);
-            if (resultCode != 0)
+            if (resultCode < 0)
             {
-                debugger.AddLog($"SDL failed to initialise! Error : {GetSDLError()}", WarningLevel.CriticalError);
-                
+                debugger.AddLog($"SDL failed to initialise! Code : {resultCode}, Error : {GetSDLError()}", WarningLevel.CriticalError);
+                return;
             }
             // png handling setup.
-            SDL_image.IMG_Init(SDL_image.IMG_InitFlags.IMG_INIT_PNG);
+            resultCode = SDL_image.IMG_Init(SDL_image.IMG_InitFlags.IMG_INIT_PNG);
+            if (resultCode < 0)
+            {
+                debugger.AddLog($"SDL_image failed to initialise! Code : {resultCode}, Error : {GetSDLError()}", WarningLevel.CriticalError);
+                SDL_Quit();
+                return;
+            }
 
-            SDL_ttf.TTF_Init();
+
+            resultCode = SDL_ttf.TTF_Init();
+            if (resultCode < 0)
+            {
+                debugger.AddLog($"SDL_ttf failed to initialise! Code : {resultCode}, Error : {GetSDLError()}", WarningLevel.CriticalError);
+                SDL_Quit();
+                return;
+            }
             LoadFonts();
 
             // Screen setup
@@ -176,6 +195,17 @@ namespace Acrya.Renderer
             {
                 dt = GetDt(ref LFT, out dtMs);
                 Handler.HandleEvents(dt);
+                // <<<Function Requests>>> //
+                lock (functionRequests)
+                {
+                    while (functionRequests.Count > 0)
+                    {
+                        (Action, ManualResetEvent) pair = functionRequests.Dequeue();
+                        pair.Item1();
+                        pair.Item2.Set(); // run the action and then signal that it is complete.
+                    }
+                }
+                // <<<Frame Time Management>>> //
                 frameTimer += dtMs;
                 frameCount++;
                 if (frameTimer > frameTimerUpdate)
@@ -195,8 +225,29 @@ namespace Acrya.Renderer
 				Render(dt);
                 _ = SDL_SetRenderTarget(SDLRenderer, IntPtr.Zero); // reset to screen
 
+
                 _ = SDL_RenderCopy(SDLRenderer, screenTexture, IntPtr.Zero, IntPtr.Zero);
 
+
+                // <<<UI Drawing>>> //
+                foreach (UIItem element in UIItems)
+                {
+                    //Console.WriteLine($"Drawing element at ({element.targetRect.x}, {element.targetRect.y}) with showing = {element.showing} and image {element.image}");
+                    if (element.showing == false) { continue; }
+                    if (element is TextField field && field.backgroundColour is (byte, byte, byte, byte) colour) 
+                    {
+                        _ = SDL_SetRenderDrawColor(SDLRenderer, colour.Item1, colour.Item2, colour.Item3, colour.Item4);
+                        _ = SDL_RenderFillRect(SDLRenderer, ref field.targetRect);
+                    }
+                    if (element.useSrcRect)
+                    {
+                        _ = SDL_RenderCopy(SDLRenderer, element.image, ref element.srcRect, ref element.targetRect);
+                    }
+                    else
+                    {
+                        _ = SDL_RenderCopy(SDLRenderer, element.image, IntPtr.Zero, ref element.targetRect);
+                    }
+                }
 
 
                 SDL_RenderPresent(SDLRenderer);
@@ -333,7 +384,7 @@ namespace Acrya.Renderer
             while (textures.Count > 0)
             {
                 IntPtr texture = textures.First();
-                textures.RemoveAt(0);
+                textures.Remove(texture);
                 SDL_DestroyTexture(texture);
             }
             while (fonts.Count > 0)

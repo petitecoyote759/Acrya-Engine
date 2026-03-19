@@ -1,4 +1,5 @@
-﻿using ILGPU.Algorithms.RadixSortOperations;
+﻿using Acrya.Renderer.UI;
+using ILGPU.Algorithms.RadixSortOperations;
 using ShortTools.General;
 using System;
 using System.Collections.Generic;
@@ -75,6 +76,17 @@ namespace Acrya.Renderer
                         break;
 
                     case SDL_EventType.SDL_MOUSEMOTION:
+
+                        _ = SDL_GetMouseState(out mouseX, out mouseY);
+                        foreach (UIItem item in Renderer.UIItems)
+                        {
+                            if (item is not Button button) { continue; }
+
+                            if (mouseX < button.targetRect.x || mouseX > button.targetRect.x + button.targetRect.w) { button.HoveredOver = false; continue; }
+                            if (mouseY < button.targetRect.y || mouseY > button.targetRect.y + button.targetRect.h) { button.HoveredOver = false; continue; }
+
+                            button.HoveredOver = true;
+                        }
 
                         break;
 
