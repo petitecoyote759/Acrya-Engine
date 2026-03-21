@@ -90,6 +90,7 @@ namespace Acrya.Renderer
         public static void RequestSetupRenderer()
         {
             controllerThread.Start();
+            Handler.Setup(); // can be ran on the main thread since it doesnt access any SDL functions, and this will speed up load times slightly
             setupComplete.WaitOne();
         }
         private static void SetupRenderer()
@@ -352,6 +353,12 @@ namespace Acrya.Renderer
                 else if (fonts.ContainsKey(fontName)) { debugger.AddLog($"Font at {fileName} has name {fontName}, one is already loaded.", WarningLevel.Error); }
                 // Success
                 else { fonts.Add(fontName, fontPointer); }
+            }
+
+
+            if (fonts.Count == 0)
+            {
+                debugger.AddLog($"No fonts were found! No write operations will work.", WarningLevel.Warning);
             }
 
             if (fonts.ContainsKey("Aller_Bd") == false) { fonts.Add("Aller_Bd", IntPtr.Zero); }
