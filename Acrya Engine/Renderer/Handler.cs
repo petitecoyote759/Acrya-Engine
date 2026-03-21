@@ -52,20 +52,34 @@ namespace Acrya.Renderer
                         Renderer.Stop();
                         break;
 
+
                     case SDL_EventType.SDL_KEYDOWN:
                         //RendererTools.debugger.AddLog($"{e.key.keysym.sym}");
                         if (keys.ContainsKey(e.key.keysym.sym)) { keys[e.key.keysym.sym] = true; }
                         break;
+
                     case SDL_EventType.SDL_KEYUP:
                         //RendererTools.debugger.AddLog($"{e.key.keysym.sym}");
                         if (keys.ContainsKey(e.key.keysym.sym)) { keys[e.key.keysym.sym] = false; }
                         break;
 
+
                     case SDL_EventType.SDL_WINDOWEVENT:
                         // RendererTools.debugger.AddLog($"{e.window.windowEvent}");
                         // SDL_WindowEvent_LEAVE
                         // SDL_WindowEvent_Focus_Gained
+                        if (e.window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST)
+                        {
+                            Renderer.debugger.AddLog($"Focus lost, pausing renderer...", WarningLevel.Debug);
+                            Renderer.Pause();
+                        }
+                        else if (e.window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED)
+                        {
+                            Renderer.debugger.AddLog($"Focus gained, resuming renderer...", WarningLevel.Debug);
+                            Renderer.Resume();
+                        }
                         break;
+
 
                     case SDL_EventType.SDL_MOUSEWHEEL:
                         //RendererTools.debugger.AddLog($"{e.wheel.preciseX} {e.wheel.preciseY}", WarningLevel.Debug);
@@ -90,6 +104,7 @@ namespace Acrya.Renderer
 
                         Renderer.debugger.AddLog($"Camera zoom is {Camera.zoom}");
                         break;
+
 
                     case SDL_EventType.SDL_MOUSEMOTION:
 
