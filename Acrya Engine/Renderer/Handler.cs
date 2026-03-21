@@ -11,16 +11,32 @@ using static SDL2.SDL;
 
 namespace Acrya.Renderer
 {
-    internal static class Handler
+    public static class Handler
     {
-        public static Dictionary<SDL_Keycode, bool> keys = new Dictionary<SDL_Keycode, bool>()
+        public static bool KeyIsDown(SDL_Keycode key)
         {
-            { SDL_Keycode.SDLK_w, false },
-            { SDL_Keycode.SDLK_a, false },
-            { SDL_Keycode.SDLK_s, false },
-            { SDL_Keycode.SDLK_d, false },
-            { SDL_Keycode.SDLK_LSHIFT, false }
-        };
+            if (keys.ContainsKey(key) == false) { return false; }
+            return keys[key];
+        }
+
+        internal static Dictionary<SDL_Keycode, bool> keys = new Dictionary<SDL_Keycode, bool>();
+
+
+
+        public static void Setup()
+        {
+            // Called from main thread in RenderTools.Setup, so no using SDL functions here, if you do, move the call to the render thread.
+            SDL_Keycode[] keyCodes = (SDL_Keycode[])Enum.GetValues(typeof(SDL_Keycode));
+
+            foreach (SDL_Keycode code in keyCodes)
+            {
+                keys.Add(code, false);
+            }
+        }
+
+
+
+
 
         public static void HandleEvents(float dt)
         {
